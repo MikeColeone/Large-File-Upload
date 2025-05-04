@@ -8,7 +8,9 @@
         <!-- 单个文件进度条 -->
         <div class="left_box_percentage">
           <div class="percentage_bac">
-            <div class="percentage_box" :style="{ width: `${item.percentage}%` }"></div>
+            <div
+              class="percentage_box"
+              :style="{ width: `${item.percentage}%` }"></div>
             <div class="percentage_box_span">
               <span>{{ Math.floor(item.percentage) }}%</span>
             </div>
@@ -18,7 +20,9 @@
               <p>{{ fileSize(item.fileSize) }}</p>
             </div>
             <div style="margin-left: 4px">
-              <div v-if="item.state === 0" style="height: 24px; width: 100%"></div>
+              <div
+                v-if="item.state === 0"
+                style="height: 24px; width: 100%"></div>
               <p v-else-if="item.state === 1">正在解析中...</p>
               <p v-else-if="item.state === 2">正在上传中...</p>
               <p v-else-if="item.state === 3">暂停中</p>
@@ -32,11 +36,17 @@
       <!-- 右侧按钮 -->
       <div class="rightBtn">
         <!-- 必须解析完才能暂停，不然是没有接口取消调用的 -->
-        <div class="my_btn redBtn" @click="pauseUpload(item)" v-if="[2].includes(item.state)">
+        <div
+          class="my_btn redBtn"
+          @click="pauseUpload(item)"
+          v-if="[2].includes(item.state)">
           暂停
         </div>
         <!-- 暂停中显示的继续按钮 -->
-        <div class="my_btn blueBtn" @click="resumeUpload(item)" v-if="[3, 5].includes(item.state)">
+        <div
+          class="my_btn blueBtn"
+          @click="resumeUpload(item)"
+          v-if="[3, 5].includes(item.state)">
           继续
         </div>
         <div class="my_btn redBtn" @click="cancelSingle(item)">取消</div>
@@ -50,7 +60,7 @@
 import { defineProps, defineEmits } from 'vue'
 // 显示到视图层的初始数据:
 const props = defineProps({
-  uploadFileList: { type: Array, default: [] }
+  uploadFileList: { type: Array, default: [] },
 })
 const emit = defineEmits(['pauseUpload', 'resumeUpload', 'cancelSingle'])
 // 暂停

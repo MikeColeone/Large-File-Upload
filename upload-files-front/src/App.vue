@@ -5,9 +5,15 @@
       <div
         class="page_top_right"
         :style="{
-          'justify-content': uploadFileList.length > 1 ? 'space-between' : 'flex-end'
+          'justify-content':
+            uploadFileList.length > 1 ? 'space-between' : 'flex-end',
         }">
-        <p class="clear_btn" @click="cancelAll" v-if="uploadFileList.length > 1">全部取消</p>
+        <p
+          class="clear_btn"
+          @click="cancelAll"
+          v-if="uploadFileList.length > 1">
+          全部取消
+        </p>
       </div>
     </div>
     <div class="content" ref="contentRef">
@@ -21,7 +27,11 @@
     <div class="bottom_box">
       <div class="input_btn">
         选择文件上传
-        <input type="file" multiple class="is_input" @change="hanldeUploadFile" />
+        <input
+          type="file"
+          multiple
+          class="is_input"
+          @change="hanldeUploadFile" />
       </div>
     </div>
   </div>
@@ -48,7 +58,18 @@ const statistics = computed(() => {
 const useWorker = (file) => {
   return new Promise((resolve) => {
     const worker = new Worker(
-      new URL('@/worker/hash-worker.js', import.meta.url)
+      //一定要加import.meta.url,否则会报错 new URL('@/worker/hash-worker.js', import.meta.url) 中的路径 @/worker/hash-worker.js 无法被正确解析为有效的 URL。new URL() 需要一个有效的相对路径或绝对路径，而 @ 是 Webpack 或 Vite 中的路径别名，new URL() 无法直接识别它。
+      //App.vue:28 
+      //  Uncaught (in promise) TypeError: Failed to construct 'URL': Invalid URL
+      //     at App.vue:28:7
+      //     at new Promise (<anonymous>)
+      //     at useWorker (App.vue:26:10)
+      //     at App.vue:292:47
+      //     at Array.forEach (<anonymous>)
+      //     at hanldeUploadFile (App.vue:256:21)
+
+      new URL('@/worker/hash-worker.js', import.meta.url),
+      // 这个错误是因为 importScripts 方法不支持在 ES 模块化的 Worker 中使用。importScripts 是专门为传统的非模块化 Worker 设计的，而你的 Worker 是通过 type: 'module' 或 import.meta.url 的方式加载的模块化 Worker。
       // {
       //   type: 'module',
       // }
@@ -59,7 +80,7 @@ const useWorker = (file) => {
       if (fileHash) {
         resolve({
           fileHash,
-          fileChunkList
+          fileChunkList,
         })
       }
     }
@@ -127,7 +148,7 @@ const handleMerge = async (taskArrItem) => {
   const res = await mergeChunk({
     chunkSize: chunkSize,
     fileName,
-    fileHash
+    fileHash,
   }).catch(() => {})
   //  如果合并成功则标识该文件已经上传完成
 
@@ -162,7 +183,10 @@ const finishTask = (item) => {
 // 单个文件上传
 const uploadSignleFile = (taskArrItem) => {
   // 如果没有需要上传的切片 / 正在上传的切片还没传完，就不做处理
-  if (taskArrItem.allChunkList.length === 0 || taskArrItem.whileRequests.length > 0) {
+  if (
+    taskArrItem.allChunkList.length === 0 ||
+    taskArrItem.whileRequests.length > 0
+  ) {
     return false
   }
   // 找到文件处于处理中/上传中的 文件列表（是文件而不是切片）
@@ -192,8 +216,16 @@ const uploadSignleFile = (taskArrItem) => {
   // 单个分片请求
   const uploadChunk = async (needObj) => {
     const fd = new FormData()
-    const { fileHash, fileSize, fileName, index, chunkFile, chunkHash, chunkSize, chunkNumber } =
-      needObj
+    const {
+      fileHash,
+      fileSize,
+      fileName,
+      index,
+      chunkFile,
+      chunkHash,
+      chunkSize,
+      chunkNumber,
+    } = needObj
 
     fd.append('fileHash', fileHash)
     fd.append('fileSize', String(fileSize))
@@ -282,7 +314,7 @@ const hanldeUploadFile = async (e) => {
       finishNumber: 0, //请求完成的个数
       errNumber: 0, // 报错的个数,默认是0个,超多3个就是直接上传中断
       percentage: 0, // 单个文件上传进度条
-      cancel: null // 用于取消切片上传接口
+      cancel: null, // 用于取消切片上传接口
     })
     uploadFileList.value.push(inTaskArrItem)
     // 如果不使用reactive，就得使用以下两种方式
@@ -324,7 +356,7 @@ const hanldeUploadFile = async (e) => {
     try {
       const res = await checkFile({
         fileHash: `${fileHash}${baseName}`,
-        fileName: file.name
+        fileName: file.name,
       })
 
       if (res.code === 0) {
@@ -354,7 +386,7 @@ const hanldeUploadFile = async (e) => {
             // 切片个数
             chunkNumber: fileChunkList.length,
             // 切片是否已经完成
-            finish: false
+            finish: false,
           }
         })
 
@@ -372,12 +404,14 @@ const hanldeUploadFile = async (e) => {
             return false
           } else {
             // 同时要注意处理切片数量
-            inTaskArrItem.allChunkList = inTaskArrItem.allChunkList.map((item) => {
-              return {
-                ...item,
-                chunkNumber: inTaskArrItem.allChunkList.length
+            inTaskArrItem.allChunkList = inTaskArrItem.allChunkList.map(
+              (item) => {
+                return {
+                  ...item,
+                  chunkNumber: inTaskArrItem.allChunkList.length,
+                }
               }
-            })
+            )
           }
         }
 
